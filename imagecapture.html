@@ -1,0 +1,75 @@
+<html>
+<script src="https://code.jquery.com/jquery-1.11.3.js"></script>
+<style>
+	body { font-size:10pt }
+	video, div { border:1px solid; margin: 10px 0px 0px 10px }
+	img { margin: 1px 1px 1px 1px }
+</style>
+<body>
+Video Url : <input id="videoUrl" type="text" value="" size=100>
+Image Count : <input id="imageCount" type="text" value=10>
+VideoTag Visible : <input type="checkbox" onclick="toggleVideo(this)">
+<input type="button" value="image capture" onclick="capture()"><br>
+
+<video crossOrigin="anonymous" id="video" src="" autoplay="true" style="display:none">
+</video>
+<div id="imgList"></div>
+</body>
+</html>
+
+<script>
+	var scale = 0.25;
+	var index = 1;
+	var imageCount=10;
+
+	function toggleVideo(checkbox) {
+		if (checkbox.checked) {
+			$("#video").show();
+		} else {
+			$("#video").hide();
+		}
+	}
+
+	function capture() {
+		index = 1;
+		imageCount = parseInt($("#imageCount").val());
+		$("#imgList").html("");
+		var video = $("#video")[0];
+		video.setAttribute("src", $("#videoUrl").val());
+		video.load();
+	}
+
+	function takeSnapshot() {
+		var video = $("#video")[0];
+		var canvas = document.createElement("canvas");
+		canvas.width = video.videoWidth * scale;
+		canvas.height = video.videoHeight * scale;
+		canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+		var img = document.createElement("img");
+		img.src = canvas.toDataURL('image/jpeg');
+		img.width=canvas.width;
+		img.height=canvas.height;
+		img.title=video.currentTime + " seconds";
+		$("#imgList").append(img);
+	}
+
+	$("#video").on("loadstart"), function() {
+		this.play();
+	}
+
+	$("#video").on("loadeddata", function() {
+		this.currentTime = this.duration / imageCount;
+	});
+
+	$("#video").on("seeked", function() {
+		if (index > imageCount) {
+			return;
+		} else {
+			index++;
+			this.pause();
+			takeSnapshot();
+			this.currentTime = this.duration / imageCount * index;
+		}
+	});
+</script>
